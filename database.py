@@ -199,6 +199,27 @@ class ShowTable(AbstractTable):
         except mysql_con.Error as err:
             print(f"Произошла ошибка: {err}")
         cursor.close()
+        
+    def delete_by_program(self, program_info, program_type):
+        cursor = self.cnx.cursor()
+        if program_type == "day":
+            query = f'''
+                DELETE FROM ShowTable WHERE
+                programId = 
+                (SELECT idProgram FROM program WHERE dayName = "{program_info}")
+            '''
+        else:
+            query = f'''
+                DELETE FROM ShowTable WHERE
+                programId = 
+                (SELECT idProgram FROM program WHERE date = "{program_info}")
+            '''
+        try:
+            cursor.execute(query)
+            self.cnx.commit()
+        except mysql_con.Error as err:
+            print(f"Произошла ошибка: {err}")
+        cursor.close()
     
     def delete_by_ads(self, name):
         cursor = self.cnx.cursor()
@@ -663,8 +684,8 @@ class FilmTable(AbstractTable):
             query = '''SELECT name, serie_num FROM Film ORDER BY name'''
         result_rows = []
         cursor.execute(query)
-        for i in cursor:
-            result_rows.append((i[0], str(i[1]) if i[1] else (i[0], "")))
+        for name, serie in cursor:
+            result_rows.append((name, serie))
         cursor.close()
         return result_rows
 
@@ -789,7 +810,6 @@ class OurTranslationTable(AbstractTable):
                         INNER JOIN Studio
                         ON studioId = idStudio
                         WHERE address = "{address}"'''
-        print(query)
         result_rows = []
         cursor.execute(query)
         for i in cursor:

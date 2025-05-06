@@ -4,9 +4,12 @@ from table import draw_table
 
 class AppInterface:
     def __init__(self):
-        user = input("Введите имя пользователя: ")
-        name = input("Введите названия базы данных: ")
-        password = input("Введите пароль: ")
+        #user = input("Введите имя пользователя: ")
+        #name = input("Введите названия базы данных: ")
+        #password = input("Введите пароль: ")
+        user = "root"
+        name = "marchenko_260"
+        password="1234"
         self.database = DataBase(name, user, password)
         self.program_interface = ProgramInterface(self.database)
         self.translation_interface = TranslationInterface(self.database)
@@ -113,6 +116,7 @@ class ProgramInterface(TableInterface):
             Определённая дата - (год) (месяц) (день)''')
         params = self.input_params()
         if params:
+            self.database.show_table.delete_by_program(*params)
             self.database.program_table.delete(*params)
         else:
             print("Ошибка ввода")
@@ -477,12 +481,16 @@ class ShowInterface(TableInterface):
             if media_info[-2] == "серия":
                 serie = media_info[-1]
                 name = " ".join(media_info[1:-2])
+                media_name = name+"@"+str(serie) if serie else name
+                if creating:
+                    self.database.film_table.create(name, serie)
             else:
                 serie = None
                 name = " ".join(media_info[1:])
-            media_name = name+"@"+str(serie) if serie else name
-            if creating:
-                self.database.film_table.create(name, serie)
+                film_id = self.database.show_table.get_film_id(name, serie)
+                media_name = name+"@"+str(serie) if serie else name
+                if creating and not(film_id):
+                    self.database.film_table.create(name, serie)
         elif media_info[0] == "передача" and len(media_info) >= 3 and media_info[1] == "наша":
             media_type = "ourtranslation"
             media_name = " ".join(media_info[2:])
